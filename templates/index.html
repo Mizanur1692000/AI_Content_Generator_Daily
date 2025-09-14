@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentAI Pro - Modern AI Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --background: #0f0f23;
+            --surface: #1a1a2e;
+            --surface-light: #2a2a3e;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --glass: rgba(255, 255, 255, 0.05);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background: var(--background);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translateX(0) translateY(0) scale(1); }
+            33% { transform: translateX(30px) translateY(-30px) scale(1.1); }
+            66% { transform: translateX(-20px) translateY(20px) scale(0.9); }
+        }
+
+        /* Glass morphism components */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        .glass-card {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.4);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '🤖';
+            font-size: 24px;
+            z-index: 2;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Main content */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 2rem 2rem;
+        }
+
+        /* Hero section */
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes textGlow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+
+        .hero .subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.6s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Form styles */
+        .form-card {
+            margin-bottom: 3rem;
+            padding: 2.5rem;
+            animation: slideUp 0.8s ease-out 0.4s backwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        .form-select option:hover {
+            background: var(--surface-light);
+        }
+
+        .form-select option:checked {
+            background: var(--primary);
+            color: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Platform checkboxes */
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .platform-option {
+            position: relative;
+        }
+
+        .platform-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .platform-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .platform-label:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+        }
+
+        .platform-checkbox:checked + .platform-label {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* Generate button */
+        .generate-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 16px;
+            padding: 1.25rem 3rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin: 2rem auto;
+            display: block;
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4);
+        }
+
+        .generate-btn:hover::before {
+            left: 100%;
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading h3 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .loading p {
+            color: var(--text-secondary);
+        }
+
+        /* Results section */
+        .results {
+            display: none;
+            animation: fadeInScale 0.8s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .results-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        /* Trends section */
+        .trends-card {
+            margin-bottom: 2rem;
+            padding: 2rem;
+        }
+
+        .trends-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .trends-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .trend-tag {
+            background: linear-gradient(135deg, var(--secondary), #34d399);
+            color: white;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            animation: fadeInRight 0.5s ease-out;
+            transition: transform 0.3s ease;
+        }
+
+        .trend-tag:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Calendar section */
+        .calendar-card {
+            padding: 2rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .day-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            animation: fadeInUp 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .day-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .content-item {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .content-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .platform-badge {
+            background: linear-gradient(135deg, var(--accent), #fbbf24);
+            color: white;
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+
+        .content-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .content-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .content-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .content-tag {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-tag:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-muted);
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .main-container {
+                padding: 100px 1rem 2rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .platforms-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon"></div>
+                ContentAI Pro
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link">Dashboard</a></li>
+                <li><a href="#" class="nav-link">Calendar</a></li>
+                <li><a href="#" class="nav-link">Analytics</a></li>
+                <li><a href="#" class="nav-link">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>AI-Powered Content Creation</h1>
+            <p>Generate engaging content ideas, detect trends, and plan your content calendar with artificial intelligence</p>
+            <div class="subtitle">Developed by Mizanur Rahman — AI Developer</div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="glass-card form-card">
+            <div class="form-header">
+                <span>⚙️</span>
+                Content Preferences
+            </div>
+            <form id="contentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Content Type</label>
+                        <select class="form-select" id="contentType" required>
+                            <option value="">Select content type...</option>
+                            <option value="Educational">Educational</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="How-to Guide">How-to Guide</option>
+                            <option value="Review">Review</option>
+                            <option value="News">News</option>
+                            <option value="Opinion">Opinion</option>
+                            <option value="Listicle">Listicle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Niche/Topic</label>
+                        <input type="text" class="form-input" id="niche" placeholder="e.g., Technology, Fitness, Cooking" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Platforms</label>
+                    <div class="platforms-grid">
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="YouTube" id="platform1">
+                            <label for="platform1" class="platform-label">
+                                <span class="platform-icon">📺</span>
+                                YouTube
+                            </label>
+                        </div>
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="Blog" id="platform2">
+                            <label for="platform2" class="platform-label">
+                                <span class="platform-icon">📝</span>
+                                Blog
+                            </label>
+                        </div>
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="Instagram" id="platform3">
+                            <label for="platform3" class="platform-label">
+                                <span class="platform-icon">📷</span>
+                                Instagram
+                            </label>
+                        </div>
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="Twitter" id="platform4">
+                            <label for="platform4" class="platform-label">
+                                <span class="platform-icon">🐦</span>
+                                Twitter
+                            </label>
+                        </div>
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="TikTok" id="platform5">
+                            <label for="platform5" class="platform-label">
+                                <span class="platform-icon">🎵</span>
+                                TikTok
+                            </label>
+                        </div>
+                        <div class="platform-option">
+                            <input type="checkbox" class="platform-checkbox" value="LinkedIn" id="platform6">
+                            <label for="platform6" class="platform-label">
+                                <span class="platform-icon">💼</span>
+                                LinkedIn
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Target Audience</label>
+                        <input type="text" class="form-input" id="audience" placeholder="e.g., Beginners, Professionals, Parents" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content Goals</label>
+                        <input type="text" class="form-input" id="goals" placeholder="e.g., Educate, Entertain, Sell Products" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="generate-btn">
+                    ✨ Generate Content Plan
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading glass-card">
+            <div class="loading-spinner"></div>
+            <h3>Generating your personalized content plan...</h3>
+            <p>Our AI is analyzing trends and creating your content calendar</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="results">
+            <div class="results-header">
+                <h2 class="results-title">Your Content Strategy</h2>
+                <div class="results-actions">
+                    <button id="refreshBtn" class="action-btn">
+                        🔄 Refresh
+                    </button>
+                    <button id="exportBtn" class="action-btn">
+                        📥 Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Trends -->
+            <div class="glass-card trends-card">
+                <div class="trends-header">
+                    <span>📈</span>
+                    Current Trends
+                </div>
+                <div id="trendsList" class="trends-list"></div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="glass-card calendar-card">
+                <div class="calendar-header">
+                    <span>📅</span>
+                    30-Day Content Calendar
+                </div>
+                <div id="calendar" class="calendar-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2024 ContentAI Pro - Modern AI-Powered Content Strategy Platform</p>
+    </footer>
+
+    <script>
+        document.getElementById('contentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const contentType = document.getElementById('contentType').value;
+            const niche = document.getElementById('niche').value;
+            const audience = document.getElementById('audience').value;
+            const goals = document.getElementById('goals').value;
+            
+            // Get selected platforms
+            const platformCheckboxes = document.querySelectorAll('.platform-checkbox:checked');
+            const platforms = Array.from(platformCheckboxes).map(cb => cb.value);
+            
+            if (platforms.length === 0) {
+                alert('Please select at least one platform.');
+                return;
+            }
+            
+            // Show loading, hide results
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            // Simulate API call with realistic delay
+            setTimeout(() => {
+                // Generate mock data
+                const mockTrends = generateMockTrends(niche);
+                const mockCalendar = generateMockCalendar(contentType, niche, platforms, audience, goals);
+                
+                // Display results
+                displayTrends(mockTrends);
+                displayCalendar(mockCalendar);
+                
+                // Show results, hide loading
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                
+                // Smooth scroll to results
+                document.getElementById('results').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 2500);
+        });
+
+        // Mock data generators
+        function generateMockTrends(niche) {
+            const trendKeywords = [
+                `${niche} 2024`, `AI ${niche}`, `${niche} Tips`, 
+                `${niche} Guide`, `${niche} Tutorial`, `${niche} Review`,
+                `${niche} Trends`, `${niche} News`, `${niche} Tools`
+            ];
+            return trendKeywords.slice(0, 6);
+        }
+
+        function generateMockCalendar(contentType, niche, platforms, audience, goals) {
+            const calendar = [];
+            const contentIdeas = [
+                `Ultimate ${niche} Guide for ${audience}`,
+                `Top 10 ${niche} Mistakes to Avoid`,
+                `${niche} Trends You Need to Know`,
+                `How to Master ${niche} in 30 Days`,
+                `${niche} Tools Review and Comparison`,
+                `${audience}'s Guide to ${niche}`,
+                `${niche} Case Study: Success Story`,
+                `${niche} Q&A Session`,
+                `${niche} Behind the Scenes`,
+                `${niche} Myths Debunked`,
+                `Future of ${niche}`,
+                `${niche} Resources and Tools`,
+                `${niche} Community Spotlight`,
+                `${niche} Weekly Roundup`
+            ];
+
+            const descriptions = [
+                `Comprehensive guide covering everything ${audience} need to know about ${niche}.`,
+                `Common pitfalls and how to avoid them in your ${niche} journey.`,
+                `Latest trends and developments in the ${niche} industry.`,
+                `Step-by-step roadmap to ${niche} mastery.`,
+                `In-depth analysis of the best ${niche} tools available.`,
+                `Tailored content specifically designed for ${audience}.`,
+                `Real-world example of ${niche} success.`,
+                `Interactive session addressing common ${niche} questions.`,
+                `Exclusive look at the ${niche} process.`,
+                `Separating fact from fiction in ${niche}.`,
+                `Predictions and insights for ${niche} evolution.`,
+                `Curated list of essential ${niche} resources.`,
+                `Highlighting amazing people in the ${niche} community.`,
+                `Weekly summary of ${niche} news and updates.`
+            ];
+
+            const tags = [
+                `${niche}`, `${audience}`, `${contentType}`, 'Tutorial', 'Guide', 
+                'Tips', 'Review', 'Analysis', 'Trends', 'Tools', 'Strategy'
+            ];
+
+            for (let day = 1; day <= 30; day++) {
+                const date = new Date();
+                date.setDate(date.getDate() + day);
+                
+                const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
+                const randomTitle = contentIdeas[Math.floor(Math.random() * contentIdeas.length)];
+                const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+                const randomTags = tags.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+                calendar.push({
+                    publish_date: date.toISOString().split('T')[0],
+                    platform: randomPlatform,
+                    title: randomTitle,
+                    description: randomDescription,
+                    tags: randomTags
+                });
+            }
+
+            return calendar;
+        }
+
+        function displayTrends(trends) {
+            const trendsContainer = document.getElementById('trendsList');
+            trendsContainer.innerHTML = '';
+            
+            trends.forEach((trend, index) => {
+                const trendElement = document.createElement('div');
+                trendElement.className = 'trend-tag';
+                trendElement.textContent = trend;
+                trendElement.style.animationDelay = `${index * 0.1}s`;
+                trendsContainer.appendChild(trendElement);
+            });
+        }
+
+        function displayCalendar(calendar) {
+            const calendarContainer = document.getElementById('calendar');
+            calendarContainer.innerHTML = '';
+            
+            // Group content by date
+            const contentByDate = {};
+            calendar.forEach(item => {
+                if (!contentByDate[item.publish_date]) {
+                    contentByDate[item.publish_date] = [];
+                }
+                contentByDate[item.publish_date].push(item);
+            });
+            
+            // Display content for each day
+            let animationDelay = 0;
+            for (const [date, items] of Object.entries(contentByDate)) {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.style.animationDelay = `${animationDelay * 0.1}s`;
+                
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'day-header';
+                dateHeader.textContent = new Date(date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                dayCard.appendChild(dateHeader);
+                
+                items.forEach(item => {
+                    const contentItem = document.createElement('div');
+                    contentItem.className = 'content-item';
+                    
+                    const platformBadge = document.createElement('div');
+                    platformBadge.className = 'platform-badge';
+                    platformBadge.textContent = item.platform;
+                    
+                    const title = document.createElement('div');
+                    title.className = 'content-title';
+                    title.textContent = item.title;
+                    
+                    const description = document.createElement('div');
+                    description.className = 'content-description';
+                    description.textContent = item.description;
+                    
+                    const tagsContainer = document.createElement('div');
+                    tagsContainer.className = 'content-tags';
+                    
+                    item.tags.forEach(tag => {
+                        const tagElement = document.createElement('span');
+                        tagElement.className = 'content-tag';
+                        tagElement.textContent = tag;
+                        tagsContainer.appendChild(tagElement);
+                    });
+                    
+                    contentItem.appendChild(platformBadge);
+                    contentItem.appendChild(title);
+                    contentItem.appendChild(description);
+                    contentItem.appendChild(tagsContainer);
+                    
+                    dayCard.appendChild(contentItem);
+                });
+                
+                calendarContainer.appendChild(dayCard);
+                animationDelay++;
+            }
+        }
+
+        // Refresh button functionality
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            document.getElementById('contentForm').dispatchEvent(new Event('submit'));
+        });
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            // Create downloadable content
+            const results = document.getElementById('results');
+            if (results.style.display === 'none') {
+                alert('Please generate content first before exporting.');
+                return;
+            }
+
+            // Mock export functionality
+            const exportData = {
+                generated_at: new Date().toISOString(),
+                trends: Array.from(document.querySelectorAll('.trend-tag')).map(el => el.textContent),
+                calendar: Array.from(document.querySelectorAll('.day-card')).map(dayCard => {
+                    const date = dayCard.querySelector('.day-header').textContent;
+                    const contents = Array.from(dayCard.querySelectorAll('.content-item')).map(item => ({
+                        platform: item.querySelector('.platform-badge').textContent,
+                        title: item.querySelector('.content-title').textContent,
+                        description: item.querySelector('.content-description').textContent,
+                        tags: Array.from(item.querySelectorAll('.content-tag')).map(tag => tag.textContent)
+                    }));
+                    return { date, contents };
+                })
+            };
+
+            // Create and download JSON file
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'content-calendar.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // Show success message
+            const btn = document.getElementById('exportBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Exported!';
+            btn.style.color = 'var(--secondary)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.color = '';
+            }, 2000);
+        });
+
+        // Add smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Add smooth scroll behavior for internal navigation
+                // This would be implemented based on actual page sections
+            });
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to generate content
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('contentForm').dispatchEvent(new Event('submit'));
+            }
+            
+            // Ctrl/Cmd + R to refresh results (when results are visible)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                const results = document.getElementById('results');
+                if (results.style.display !== 'none') {
+                    e.preventDefault();
+                    document.getElementById('refreshBtn').click();
+                }
+            }
+        });
+
+        // Add form validation feedback
+        const formInputs = document.querySelectorAll('.form-input, .form-select');
+        formInputs.forEach(input => {
+            input.addEventListener('invalid', function(e) {
+                e.target.style.borderColor = '#ef4444';
+                e.target.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+            });
+            
+            input.addEventListener('input', function(e) {
+                if (e.target.checkValidity()) {
+                    e.target.style.borderColor = '';
+                    e.target.style.boxShadow = '';
+                }
+            });
+        });
+
+        // Add progress indication during content generation
+        let progressInterval;
+        
+        function startProgress() {
+            const loadingText = document.querySelector('.loading p');
+            const messages = [
+                'Analyzing market trends...',
+                'Processing your preferences...',
+                'Generating content ideas...',
+                'Optimizing for your audience...',
+                'Creating content calendar...',
+                'Finalizing recommendations...'
+            ];
+            
+            let messageIndex = 0;
+            progressInterval = setInterval(() => {
+                if (messageIndex < messages.length) {
+                    loadingText.textContent = messages[messageIndex];
+                    messageIndex++;
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 400);
+        }
+
+        // Update the form submission to include progress
+        document.getElementById('contentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const contentType = document.getElementById('contentType').value;
+            const niche = document.getElementById('niche').value;
+            const audience = document.getElementById('audience').value;
+            const goals = document.getElementById('goals').value;
+            
+            // Get selected platforms
+            const platformCheckboxes = document.querySelectorAll('.platform-checkbox:checked');
+            const platforms = Array.from(platformCheckboxes).map(cb => cb.value);
+            
+            if (platforms.length === 0) {
+                // Create custom alert
+                showCustomAlert('Please select at least one platform.');
+                return;
+            }
+            
+            // Show loading, hide results
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            // Start progress messages
+            startProgress();
+            
+            // Simulate API call with realistic delay
+            setTimeout(() => {
+                clearInterval(progressInterval);
+                
+                // Generate mock data
+                const mockTrends = generateMockTrends(niche);
+                const mockCalendar = generateMockCalendar(contentType, niche, platforms, audience, goals);
+                
+                // Display results
+                displayTrends(mockTrends);
+                displayCalendar(mockCalendar);
+                
+                // Show results, hide loading
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                
+                // Smooth scroll to results
+                setTimeout(() => {
+                    document.getElementById('results').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }, 2500);
+        });
+
+        // Custom alert function
+        function showCustomAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(239, 68, 68, 0.9);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                z-index: 10000;
+                font-weight: 500;
+                backdrop-filter: blur(10px);
+                animation: fadeIn 0.3s ease-out;
+            `;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    document.body.removeChild(alertDiv);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS for fade animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
