@@ -472,6 +472,8 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .results-title {
@@ -661,6 +663,17 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* Error message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            color: #f87171;
+            display: none;
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
             .nav-container {
@@ -823,11 +836,16 @@
             </form>
         </div>
 
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message">
+            <strong>Error:</strong> <span id="errorText"></span>
+        </div>
+
         <!-- Loading -->
         <div id="loading" class="loading glass-card">
             <div class="loading-spinner"></div>
             <h3>Generating your personalized content plan...</h3>
-            <p>Our AI is analyzing trends and creating your content calendar</p>
+            <p id="loadingMessage">Our AI is analyzing trends and creating your content calendar</p>
         </div>
 
         <!-- Results -->
@@ -869,6 +887,10 @@
     </footer>
 
     <script>
+        // API endpoint for generating content
+        const API_ENDPOINT = '/generate-calendar';
+        
+        // Form submission handler
         document.getElementById('contentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -883,108 +905,71 @@
             const platforms = Array.from(platformCheckboxes).map(cb => cb.value);
             
             if (platforms.length === 0) {
-                alert('Please select at least one platform.');
+                showError('Please select at least one platform.');
                 return;
             }
+            
+            // Hide any previous errors
+            hideError();
             
             // Show loading, hide results
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             
-            // Simulate API call with realistic delay
-            setTimeout(() => {
-                // Generate mock data
-                const mockTrends = generateMockTrends(niche);
-                const mockCalendar = generateMockCalendar(contentType, niche, platforms, audience, goals);
+            // Start progress messages
+            startProgress();
+            
+            try {
+                // Create form data for the request
+                const formData = new FormData();
+                formData.append('content_type', contentType);
+                formData.append('niche', niche);
+                formData.append('audience', audience);
+                formData.append('goals', goals);
+                platforms.forEach(platform => formData.append('platforms', platform));
                 
-                // Display results
-                displayTrends(mockTrends);
-                displayCalendar(mockCalendar);
-                
-                // Show results, hide loading
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('loading').style.display = 'none';
-                
-                // Smooth scroll to results
-                document.getElementById('results').scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
+                // Make API request to backend
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
                 });
-            }, 2500);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Display the results
+                    displayTrends(data.trends);
+                    displayCalendar(data.calendar);
+                    
+                    // Show results, hide loading
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Smooth scroll to results
+                    setTimeout(() => {
+                        document.getElementById('results').scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }, 100);
+                } else {
+                    throw new Error('Failed to generate content calendar');
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                showError(error.message || 'Failed to connect to the server. Please try again.');
+                document.getElementById('loading').style.display = 'none';
+            } finally {
+                clearInterval(progressInterval);
+            }
         });
 
-        // Mock data generators
-        function generateMockTrends(niche) {
-            const trendKeywords = [
-                `${niche} 2024`, `AI ${niche}`, `${niche} Tips`, 
-                `${niche} Guide`, `${niche} Tutorial`, `${niche} Review`,
-                `${niche} Trends`, `${niche} News`, `${niche} Tools`
-            ];
-            return trendKeywords.slice(0, 6);
-        }
-
-        function generateMockCalendar(contentType, niche, platforms, audience, goals) {
-            const calendar = [];
-            const contentIdeas = [
-                `Ultimate ${niche} Guide for ${audience}`,
-                `Top 10 ${niche} Mistakes to Avoid`,
-                `${niche} Trends You Need to Know`,
-                `How to Master ${niche} in 30 Days`,
-                `${niche} Tools Review and Comparison`,
-                `${audience}'s Guide to ${niche}`,
-                `${niche} Case Study: Success Story`,
-                `${niche} Q&A Session`,
-                `${niche} Behind the Scenes`,
-                `${niche} Myths Debunked`,
-                `Future of ${niche}`,
-                `${niche} Resources and Tools`,
-                `${niche} Community Spotlight`,
-                `${niche} Weekly Roundup`
-            ];
-
-            const descriptions = [
-                `Comprehensive guide covering everything ${audience} need to know about ${niche}.`,
-                `Common pitfalls and how to avoid them in your ${niche} journey.`,
-                `Latest trends and developments in the ${niche} industry.`,
-                `Step-by-step roadmap to ${niche} mastery.`,
-                `In-depth analysis of the best ${niche} tools available.`,
-                `Tailored content specifically designed for ${audience}.`,
-                `Real-world example of ${niche} success.`,
-                `Interactive session addressing common ${niche} questions.`,
-                `Exclusive look at the ${niche} process.`,
-                `Separating fact from fiction in ${niche}.`,
-                `Predictions and insights for ${niche} evolution.`,
-                `Curated list of essential ${niche} resources.`,
-                `Highlighting amazing people in the ${niche} community.`,
-                `Weekly summary of ${niche} news and updates.`
-            ];
-
-            const tags = [
-                `${niche}`, `${audience}`, `${contentType}`, 'Tutorial', 'Guide', 
-                'Tips', 'Review', 'Analysis', 'Trends', 'Tools', 'Strategy'
-            ];
-
-            for (let day = 1; day <= 30; day++) {
-                const date = new Date();
-                date.setDate(date.getDate() + day);
-                
-                const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
-                const randomTitle = contentIdeas[Math.floor(Math.random() * contentIdeas.length)];
-                const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
-                const randomTags = tags.sort(() => 0.5 - Math.random()).slice(0, 4);
-
-                calendar.push({
-                    publish_date: date.toISOString().split('T')[0],
-                    platform: randomPlatform,
-                    title: randomTitle,
-                    description: randomDescription,
-                    tags: randomTags
-                });
-            }
-
-            return calendar;
-        }
-
+        // Display trends function
         function displayTrends(trends) {
             const trendsContainer = document.getElementById('trendsList');
             trendsContainer.innerHTML = '';
@@ -998,29 +983,21 @@
             });
         }
 
+        // Display calendar function
         function displayCalendar(calendar) {
             const calendarContainer = document.getElementById('calendar');
             calendarContainer.innerHTML = '';
             
-            // Group content by date
-            const contentByDate = {};
-            calendar.forEach(item => {
-                if (!contentByDate[item.publish_date]) {
-                    contentByDate[item.publish_date] = [];
-                }
-                contentByDate[item.publish_date].push(item);
-            });
-            
             // Display content for each day
             let animationDelay = 0;
-            for (const [date, items] of Object.entries(contentByDate)) {
+            calendar.forEach(item => {
                 const dayCard = document.createElement('div');
                 dayCard.className = 'day-card';
                 dayCard.style.animationDelay = `${animationDelay * 0.1}s`;
                 
                 const dateHeader = document.createElement('div');
                 dateHeader.className = 'day-header';
-                dateHeader.textContent = new Date(date).toLocaleDateString('en-US', { 
+                dateHeader.textContent = new Date(item.publish_date).toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
                     month: 'short', 
@@ -1029,48 +1006,104 @@
                 
                 dayCard.appendChild(dateHeader);
                 
-                items.forEach(item => {
-                    const contentItem = document.createElement('div');
-                    contentItem.className = 'content-item';
-                    
-                    const platformBadge = document.createElement('div');
-                    platformBadge.className = 'platform-badge';
-                    platformBadge.textContent = item.platform;
-                    
-                    const title = document.createElement('div');
-                    title.className = 'content-title';
-                    title.textContent = item.title;
-                    
-                    const description = document.createElement('div');
-                    description.className = 'content-description';
-                    description.textContent = item.description;
-                    
-                    const tagsContainer = document.createElement('div');
-                    tagsContainer.className = 'content-tags';
-                    
-                    item.tags.forEach(tag => {
-                        const tagElement = document.createElement('span');
-                        tagElement.className = 'content-tag';
-                        tagElement.textContent = tag;
-                        tagsContainer.appendChild(tagElement);
-                    });
-                    
-                    contentItem.appendChild(platformBadge);
-                    contentItem.appendChild(title);
-                    contentItem.appendChild(description);
-                    contentItem.appendChild(tagsContainer);
-                    
-                    dayCard.appendChild(contentItem);
+                const contentItem = document.createElement('div');
+                contentItem.className = 'content-item';
+                
+                const platformBadge = document.createElement('div');
+                platformBadge.className = 'platform-badge';
+                platformBadge.textContent = item.platform;
+                
+                const title = document.createElement('div');
+                title.className = 'content-title';
+                title.textContent = item.title;
+                
+                const description = document.createElement('div');
+                description.className = 'content-description';
+                description.textContent = item.description;
+                
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'content-tags';
+                
+                item.tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'content-tag';
+                    tagElement.textContent = tag;
+                    tagsContainer.appendChild(tagElement);
                 });
                 
+                contentItem.appendChild(platformBadge);
+                contentItem.appendChild(title);
+                contentItem.appendChild(description);
+                contentItem.appendChild(tagsContainer);
+                
+                dayCard.appendChild(contentItem);
                 calendarContainer.appendChild(dayCard);
                 animationDelay++;
-            }
+            });
+        }
+
+        // Error handling functions
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            errorText.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // Scroll to error message
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Progress indication during content generation
+        let progressInterval;
+        
+        function startProgress() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const messages = [
+                'Analyzing market trends...',
+                'Processing your preferences...',
+                'Generating content ideas...',
+                'Optimizing for your audience...',
+                'Creating content calendar...',
+                'Finalizing recommendations...'
+            ];
+            
+            let messageIndex = 0;
+            progressInterval = setInterval(() => {
+                if (messageIndex < messages.length) {
+                    loadingMessage.textContent = messages[messageIndex];
+                    messageIndex++;
+                } else {
+                    // Reset to first message if we've gone through all
+                    messageIndex = 0;
+                    loadingMessage.textContent = messages[messageIndex];
+                }
+            }, 400);
         }
 
         // Refresh button functionality
         document.getElementById('refreshBtn').addEventListener('click', function() {
-            document.getElementById('contentForm').dispatchEvent(new Event('submit'));
+            // Force a new generation by adding a parameter
+            const forceNewInput = document.createElement('input');
+            forceNewInput.type = 'hidden';
+            forceNewInput.name = 'force_new';
+            forceNewInput.value = 'true';
+            
+            // Add the hidden input to the form temporarily
+            const form = document.getElementById('contentForm');
+            form.appendChild(forceNewInput);
+            
+            // Submit the form
+            form.dispatchEvent(new Event('submit'));
+            
+            // Remove the hidden input after submission
+            setTimeout(() => {
+                form.removeChild(forceNewInput);
+            }, 100);
         });
 
         // Export functionality
@@ -1078,24 +1111,29 @@
             // Create downloadable content
             const results = document.getElementById('results');
             if (results.style.display === 'none') {
-                alert('Please generate content first before exporting.');
+                showError('Please generate content first before exporting.');
                 return;
             }
 
-            // Mock export functionality
+            // Get the calendar data from the displayed content
+            const calendarItems = Array.from(document.querySelectorAll('.day-card')).map(dayCard => {
+                const date = dayCard.querySelector('.day-header').textContent;
+                const platform = dayCard.querySelector('.platform-badge').textContent;
+                const title = dayCard.querySelector('.content-title').textContent;
+                const description = dayCard.querySelector('.content-description').textContent;
+                const tags = Array.from(dayCard.querySelectorAll('.content-tag')).map(tag => tag.textContent);
+                
+                return { date, platform, title, description, tags };
+            });
+
+            // Get trends
+            const trends = Array.from(document.querySelectorAll('.trend-tag')).map(el => el.textContent);
+
+            // Create export data
             const exportData = {
                 generated_at: new Date().toISOString(),
-                trends: Array.from(document.querySelectorAll('.trend-tag')).map(el => el.textContent),
-                calendar: Array.from(document.querySelectorAll('.day-card')).map(dayCard => {
-                    const date = dayCard.querySelector('.day-header').textContent;
-                    const contents = Array.from(dayCard.querySelectorAll('.content-item')).map(item => ({
-                        platform: item.querySelector('.platform-badge').textContent,
-                        title: item.querySelector('.content-title').textContent,
-                        description: item.querySelector('.content-description').textContent,
-                        tags: Array.from(item.querySelectorAll('.content-tag')).map(tag => tag.textContent)
-                    }));
-                    return { date, contents };
-                })
+                trends: trends,
+                calendar: calendarItems
             };
 
             // Create and download JSON file
@@ -1119,15 +1157,6 @@
                 btn.innerHTML = originalText;
                 btn.style.color = '';
             }, 2000);
-        });
-
-        // Add smooth scrolling for navigation links
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                // Add smooth scroll behavior for internal navigation
-                // This would be implemented based on actual page sections
-            });
         });
 
         // Add keyboard shortcuts
@@ -1163,123 +1192,6 @@
                 }
             });
         });
-
-        // Add progress indication during content generation
-        let progressInterval;
-        
-        function startProgress() {
-            const loadingText = document.querySelector('.loading p');
-            const messages = [
-                'Analyzing market trends...',
-                'Processing your preferences...',
-                'Generating content ideas...',
-                'Optimizing for your audience...',
-                'Creating content calendar...',
-                'Finalizing recommendations...'
-            ];
-            
-            let messageIndex = 0;
-            progressInterval = setInterval(() => {
-                if (messageIndex < messages.length) {
-                    loadingText.textContent = messages[messageIndex];
-                    messageIndex++;
-                } else {
-                    clearInterval(progressInterval);
-                }
-            }, 400);
-        }
-
-        // Update the form submission to include progress
-        document.getElementById('contentForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const contentType = document.getElementById('contentType').value;
-            const niche = document.getElementById('niche').value;
-            const audience = document.getElementById('audience').value;
-            const goals = document.getElementById('goals').value;
-            
-            // Get selected platforms
-            const platformCheckboxes = document.querySelectorAll('.platform-checkbox:checked');
-            const platforms = Array.from(platformCheckboxes).map(cb => cb.value);
-            
-            if (platforms.length === 0) {
-                // Create custom alert
-                showCustomAlert('Please select at least one platform.');
-                return;
-            }
-            
-            // Show loading, hide results
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-            
-            // Start progress messages
-            startProgress();
-            
-            // Simulate API call with realistic delay
-            setTimeout(() => {
-                clearInterval(progressInterval);
-                
-                // Generate mock data
-                const mockTrends = generateMockTrends(niche);
-                const mockCalendar = generateMockCalendar(contentType, niche, platforms, audience, goals);
-                
-                // Display results
-                displayTrends(mockTrends);
-                displayCalendar(mockCalendar);
-                
-                // Show results, hide loading
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('loading').style.display = 'none';
-                
-                // Smooth scroll to results
-                setTimeout(() => {
-                    document.getElementById('results').scrollIntoView({ 
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }, 100);
-            }, 2500);
-        });
-
-        // Custom alert function
-        function showCustomAlert(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(239, 68, 68, 0.9);
-                color: white;
-                padding: 1rem 2rem;
-                border-radius: 12px;
-                z-index: 10000;
-                font-weight: 500;
-                backdrop-filter: blur(10px);
-                animation: fadeIn 0.3s ease-out;
-            `;
-            alertDiv.textContent = message;
-            
-            document.body.appendChild(alertDiv);
-            
-            setTimeout(() => {
-                alertDiv.style.animation = 'fadeOut 0.3s ease-out forwards';
-                setTimeout(() => {
-                    document.body.removeChild(alertDiv);
-                }, 300);
-            }, 3000);
-        }
-
-        // Add CSS for fade animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeOut {
-                from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                to { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>

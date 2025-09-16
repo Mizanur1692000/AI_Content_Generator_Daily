@@ -1,0 +1,112 @@
+2025-09-16 06:10:28,532 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:10:28,532 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:10:28,532 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:10:28,545 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:10:28,552 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:10:28,553 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:10:28,553 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:10:28,553 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:10:31,883 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:10:31,883 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:10:31,883 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:10:31,883 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:10:31,900 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:10:31,900 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:10:31,900 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:10:36,067 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:10:46,040 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:10:46,040 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:10:46,040 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:10:46,040 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:10:46,060 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:10:46,060 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:10:46,060 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:11:25,705 - content_platform - INFO - Serving index page
+2025-09-16 06:11:50,801 - content_platform - INFO - Received calendar generation request: Coocking, How-to Guide, ['Blog']
+2025-09-16 06:11:50,801 - content_platform - INFO - Generating content calendar for user: 127.0.0.1, niche: Coocking
+2025-09-16 06:11:50,801 - content_platform - INFO - Fetching real-time trends for content generation
+2025-09-16 06:11:50,801 - content_platform - INFO - Fetching search trends for niche: Coocking
+2025-09-16 06:11:55,188 - content_platform - INFO - Found 53 search trends for Coocking
+2025-09-16 06:11:55,188 - content_platform - INFO - Fetching YouTube trends for niche: Coocking
+2025-09-16 06:11:55,803 - content_platform - INFO - Found 10 YouTube trends for Coocking
+2025-09-16 06:11:56,094 - content_platform - ERROR - Error generating content calendar: "Input to PromptTemplate is missing variables {'trend'}.  Expected: ['audience', 'content_type', 'goals', 'niche', 'platforms', 'trend', 'trends'] Received: ['content_type', 'platforms', 'niche', 'audience', 'goals', 'trends']\nNote: if you intended {trend} to be part of the string and not a variable, please escape it with double curly braces like: '{{trend}}'.\nFor troubleshooting, visit: https://python.langchain.com/docs/troubleshooting/errors/INVALID_PROMPT_INPUT "
+2025-09-16 06:11:56,094 - content_platform - WARNING - Using fallback calendar due to generation error
+2025-09-16 06:11:56,094 - content_platform - INFO - Generating fallback content calendar
+2025-09-16 06:11:56,095 - content_platform - INFO - Fallback calendar generated successfully
+2025-09-16 06:11:56,095 - content_platform - INFO - Detecting trends for niche: Coocking
+2025-09-16 06:11:56,095 - content_platform - INFO - Fetching search trends for niche: Coocking
+2025-09-16 06:11:56,153 - content_platform - INFO - Found 53 search trends for Coocking
+2025-09-16 06:11:56,153 - content_platform - INFO - Fetching YouTube trends for niche: Coocking
+2025-09-16 06:11:56,672 - content_platform - INFO - Found 10 YouTube trends for Coocking
+2025-09-16 06:11:56,677 - content_platform - INFO - Calendar generation completed successfully for Coocking
+2025-09-16 06:22:23,169 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:22:26,649 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:22:26,649 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:22:26,649 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:22:26,670 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:22:26,675 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:22:26,675 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:22:26,675 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:22:26,676 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:22:30,062 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:22:30,062 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:22:30,062 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:22:30,072 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:22:30,079 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:22:30,079 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:22:30,079 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:22:31,701 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:22:38,720 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:22:38,720 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:22:38,720 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:22:38,738 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:22:38,744 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:22:38,744 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:22:38,744 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:22:45,146 - content_platform - INFO - Serving index page
+2025-09-16 06:24:01,838 - content_platform - INFO - Received calendar generation request: Food, Review, ['YouTube', 'Blog']
+2025-09-16 06:24:01,839 - content_platform - INFO - Generating content calendar for user: 127.0.0.1, niche: Food
+2025-09-16 06:24:01,841 - content_platform - INFO - Fetching real-time trends for content generation
+2025-09-16 06:24:01,841 - content_platform - INFO - Fetching search trends for niche: Food
+2025-09-16 06:24:07,988 - content_platform - INFO - Found 53 search trends for Food
+2025-09-16 06:24:07,993 - content_platform - INFO - Fetching YouTube trends for niche: Food
+2025-09-16 06:24:19,075 - content_platform - ERROR - Error fetching YouTube trends: Cannot connect to host www.googleapis.com:443 ssl:default [getaddrinfo failed]
+2025-09-16 06:24:19,075 - content_platform - INFO - Combined 4 trends
+2025-09-16 06:24:19,077 - content_platform - INFO - Invoking model with input (truncated for logs)
+2025-09-16 06:25:13,868 - content_platform - INFO - Model invocation successful, generated 30 items
+2025-09-16 06:25:13,868 - content_platform - INFO - Content calendar generated successfully for user: 127.0.0.1
+2025-09-16 06:25:13,868 - content_platform - INFO - Detecting trends for niche: Food
+2025-09-16 06:25:13,868 - content_platform - INFO - Fetching search trends for niche: Food
+2025-09-16 06:25:13,907 - content_platform - INFO - Found 53 search trends for Food
+2025-09-16 06:25:13,907 - content_platform - INFO - Fetching YouTube trends for niche: Food
+2025-09-16 06:25:15,515 - content_platform - INFO - Found 10 YouTube trends for Food
+2025-09-16 06:25:15,518 - content_platform - INFO - Using API trends: 6 trends found
+2025-09-16 06:25:15,519 - content_platform - INFO - Calendar generation completed successfully for Food
+2025-09-16 06:37:19,536 - content_platform - INFO - Content Platform API shutting down
+2025-09-16 06:41:31,227 - content_platform - INFO - GEMINI_API_KEY found: True
+2025-09-16 06:41:31,227 - content_platform - INFO - SERPAPI_KEY found: True
+2025-09-16 06:41:31,227 - content_platform - INFO - YOUTUBE_API_KEY found: True
+2025-09-16 06:41:31,250 - content_platform - INFO - Gemini model initialized successfully
+2025-09-16 06:41:31,255 - content_platform - INFO - Content Platform API starting up
+2025-09-16 06:41:31,256 - content_platform - INFO - Available content types: ['Educational', 'Entertainment', 'How-to Guide', 'Review', 'News', 'Opinion', 'Listicle']
+2025-09-16 06:41:31,256 - content_platform - INFO - Available platforms: ['YouTube', 'Blog', 'Instagram', 'Twitter', 'TikTok', 'LinkedIn']
+2025-09-16 06:41:42,097 - content_platform - INFO - Serving index page
+2025-09-16 06:41:52,819 - content_platform - INFO - Received calendar generation request: Food, Review, ['Blog', 'Instagram']
+2025-09-16 06:41:52,819 - content_platform - INFO - Generating content calendar for user: 127.0.0.1, niche: Food
+2025-09-16 06:41:52,819 - content_platform - INFO - Fetching real-time trends for content generation
+2025-09-16 06:41:52,819 - content_platform - INFO - Fetching search trends for niche: Food
+2025-09-16 06:41:54,122 - content_platform - INFO - Found 53 search trends for Food
+2025-09-16 06:41:54,124 - content_platform - INFO - Fetching YouTube trends for niche: Food
+2025-09-16 06:41:54,715 - content_platform - INFO - Found 10 YouTube trends for Food
+2025-09-16 06:41:54,715 - content_platform - INFO - Combined 6 trends
+2025-09-16 06:41:54,720 - content_platform - INFO - Invoking model with input (truncated for logs)
+2025-09-16 06:42:39,462 - content_platform - INFO - Model invocation successful, generated 30 items
+2025-09-16 06:42:39,462 - content_platform - INFO - Content calendar generated successfully for user: 127.0.0.1
+2025-09-16 06:42:39,462 - content_platform - INFO - Detecting trends for niche: Food
+2025-09-16 06:42:39,462 - content_platform - INFO - Fetching search trends for niche: Food
+2025-09-16 06:42:39,536 - content_platform - INFO - Found 53 search trends for Food
+2025-09-16 06:42:39,538 - content_platform - INFO - Fetching YouTube trends for niche: Food
+2025-09-16 06:42:40,084 - content_platform - INFO - Found 10 YouTube trends for Food
+2025-09-16 06:42:40,086 - content_platform - INFO - Using API trends: 6 trends found
+2025-09-16 06:42:40,087 - content_platform - INFO - Calendar generation completed successfully for Food
+2025-09-16 06:52:57,037 - content_platform - INFO - Content Platform API shutting down
