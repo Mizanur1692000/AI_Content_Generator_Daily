@@ -123,13 +123,13 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 Here is a user-friendly visual representation of the full workflow of the AI Content Platform:
 
-![Content Generation Flow](assets/diagram.png)
+![Content Generation Flow](Content_Generation_Flow.png)
 
 * Shows the flow from **user input** -> **FastAPI endpoints** -> **caching** -> **trend sources** -> **dynamic content generation** -> **AI processing** -> **fallback mechanisms** -> **logging/debugging** -> **JSON response**.
 * Color-coded sections, clear arrows, and icons for easy understanding.
 ## Project Flow Diagram
 
-![Content Generation Flow](Content_Generation_Flow.png)
+
 
 ---
 
