@@ -20,6 +20,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.runnables import RunnableLambda
 import aiohttp
 import serpapi
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 # Load environment variables
 load_dotenv()
@@ -219,6 +220,13 @@ def clean_output(text: str) -> str:
         text = text[:-3].strip()
     return text
 
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+async def fetch_with_retry(session, url, params, timeout):
+    async with session.get(url, params=params, timeout=timeout) as response:
+        if response.status != 200:
+            raise ValueError(f"HTTP error: {response.status}")
+        return await response.json()
+
 async def get_search_trends(niche: str) -> List[str]:
     global debug_info
     """Get current search trends using SerpAPI"""
@@ -255,66 +263,56 @@ async def get_search_trends(niche: str) -> List[str]:
             debug_data["request_params"] = {k: v for k, v in params.items() if k != 'api_key'}
             logger.debug(f"SerpAPI request params: {debug_data['request_params']}")
             
-            async with session.get('https://serpapi.com/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                debug_data["response_status"] = response.status
-                logger.debug(f"SerpAPI response status: {response.status}")
-                
-                if response.status == 200:
-                    data = await response.json()
-                    debug_data["response_data"] = data
-                    
-                    # Extract trending topics from the response
-                    if 'interest_over_time' in data and 'timeline_data' in data['interest_over_time']:
-                        for item in data['interest_over_time']['timeline_data']:
-                            if 'values' in item:
-                                for value in item['values']:
-                                    if 'query' in value:
-                                        trends.append(value['query'])
-                    
-                    # Also try related queries
-                    params['data_type'] = 'RELATED_QUERIES'
-                    async with session.get('https://serpapi.com/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as rel_response:
-                        debug_data["related_status"] = rel_response.status
-                        logger.debug(f"SerpAPI related queries status: {rel_response.status}")
-                        
-                        if rel_response.status == 200:
-                            rel_data = await rel_response.json()
-                            debug_data["related_data"] = rel_data
-                            
-                            if 'related_queries' in rel_data:
-                                for query in rel_data['related_queries']:
-                                    if 'query' in query:
-                                        trends.append(query['query'])
-                    
-                    # If we don't get enough trends, use fallback
-                    if len(trends) < 3:
-                        fallback = [f"{niche} trends", f"latest {niche} news", f"{niche} tips", f"{niche} tutorials"]
-                        trends.extend(fallback)
-                        debug_data["fallback_added"] = fallback
-                        logger.warning(f"Not enough trends found, added fallback: {fallback}")
-                    
-                    debug_data["status"] = "success"
-                    debug_data["trends_found"] = len(trends)
-                    debug_data["trends"] = trends
-                    # Store debug info
-                    debug_info["search_trends"] = debug_data
-                    
-                    # Cache the results
-                    dynamic_content_cache["trends"][cache_key] = {
-                        "data": list(set(trends))[:10],  # Return unique trends, max 10
-                        "timestamp": datetime.now()
-                    }
-                    
-                    logger.info(f"Found {len(trends)} search trends for {niche}")
-                    logger.debug(safe_log_message(f"Search trends: {trends}"))
-                    return dynamic_content_cache["trends"][cache_key]["data"]
+            data = await fetch_with_retry(session, 'https://serpapi.com/search', params, aiohttp.ClientTimeout(total=30))
+            debug_data["response_data"] = data
+            
+            # Extract trending topics from the response
+            if 'interest_over_time' in data and 'timeline_data' in data['interest_over_time']:
+                for item in data['interest_over_time']['timeline_data']:
+                    if 'values' in item:
+                        for value in item['values']:
+                            if 'query' in value:
+                                trends.append(value['query'])
+            
+            # Also try related queries
+            params['data_type'] = 'RELATED_QUERIES'
+            rel_data = await fetch_with_retry(session, 'https://serpapi.com/search', params, aiohttp.ClientTimeout(total=30))
+            debug_data["related_data"] = rel_data
+            
+            if 'related_queries' in rel_data:
+                for query in rel_data['related_queries']:
+                    if 'query' in query:
+                        trends.append(query['query'])
+            
+            # If we don't get enough trends, use fallback
+            if len(trends) < 3:
+                fallback = [f"{niche} trends", f"latest {niche} news", f"{niche} tips", f"{niche} tutorials"]
+                trends.extend(fallback)
+                debug_data["fallback_added"] = fallback
+                logger.warning(f"Not enough trends found, added fallback: {fallback}")
+            
+            debug_data["status"] = "success"
+            debug_data["trends_found"] = len(trends)
+            debug_data["trends"] = trends
+            # Store debug info
+            debug_info["search_trends"] = debug_data
+            
+            # Cache the results
+            dynamic_content_cache["trends"][cache_key] = {
+                "data": list(set(trends))[:10],  # Return unique trends, max 10
+                "timestamp": datetime.now()
+            }
+            
+            logger.info(f"Found {len(trends)} search trends for {niche}")
+            logger.debug(safe_log_message(f"Search trends: {trends}"))
+            return dynamic_content_cache["trends"][cache_key]["data"]
                     
     except Exception as e:
         debug_data["status"] = "error"
         debug_data["error"] = str(e)
         # Store debug info
         debug_info["search_trends"] = debug_data
-        logger.error(f"Error fetching search trends: {e}")
+        logger.error(f"Error fetching search trends: {str(e)}", exc_info=True)
         return [f"Trend in {niche}", "Industry News", "How-to Guides", "Product Reviews", "Expert Opinions"]
 
 async def get_youtube_trends(niche: str) -> List[str]:
@@ -356,7 +354,7 @@ async def get_youtube_trends(niche: str) -> List[str]:
             debug_data["request_params"] = params
             logger.debug(f"YouTube API request params: {params}")
             
-            async with session.get('https://www.googleapis.com/youtube/v3/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with session.get('https://www.googleapis.com/youtube/v3/search', params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
                 debug_data["response_status"] = response.status
                 logger.debug(f"YouTube API response status: {response.status}")
                 
@@ -397,8 +395,47 @@ async def get_youtube_trends(niche: str) -> List[str]:
         debug_data["error"] = str(e)
         # Store debug info
         debug_info["youtube_trends"] = debug_data
-        logger.error(f"Error fetching YouTube trends: {e}")
+        logger.error(f"Error fetching YouTube trends: {str(e)}", exc_info=True)
         return [f"{niche} videos", f"{niche} tutorials", f"{niche} reviews"]
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+async def get_dynamic_content_types_with_retry(niche: str, audience: str) -> List[str]:
+    content_types = DEFAULT_CONTENT_TYPES.copy()
+    
+    if not serpapi_key:
+        logger.warning("SERPAPI_KEY not found, using default content types")
+        return content_types
+    
+    async with aiohttp.ClientSession() as session:
+        params = {
+            'engine': 'google',
+            'q': f'{niche} content types',
+            'api_key': serpapi_key
+        }
+        
+        data = await fetch_with_retry(session, 'https://serpapi.com/search', params, aiohttp.ClientTimeout(total=30))
+        
+        # Extract content types from search results
+        if 'organic_results' in data:
+            for result in data['organic_results']:
+                if 'title' in result:
+                    title = result['title']
+                    # Extract potential content types from titles
+                    if 'how to' in title.lower() or 'tutorial' in title.lower():
+                        if 'How-to Guide' not in content_types:
+                            content_types.append('How-to Guide')
+                    elif 'review' in title.lower():
+                        if 'Review' not in content_types:
+                            content_types.append('Review')
+                    elif 'news' in title.lower():
+                        if 'News' not in content_types:
+                            content_types.append('News')
+                    elif 'list' in title.lower() or 'listicle' in title.lower():
+                        if 'Listicle' not in content_types:
+                            content_types.append('Listicle')
+        
+        logger.info(f"Found {len(content_types)} content types for {niche}")
+        return content_types
 
 async def get_dynamic_content_types(niche: str, audience: str) -> List[str]:
     """Get dynamic content types based on niche and audience using SerpAPI"""
@@ -412,58 +449,67 @@ async def get_dynamic_content_types(niche: str, audience: str) -> List[str]:
             logger.info(f"Using cached content types for: {niche}")
             return cached_data["data"]
     
-    content_types = DEFAULT_CONTENT_TYPES.copy()
+    try:
+        content_types = await get_dynamic_content_types_with_retry(niche, audience)
+        # Cache the results
+        dynamic_content_cache["types"][cache_key] = {
+            "data": content_types,
+            "timestamp": datetime.now()
+        }
+        return content_types
+    except Exception as e:
+        logger.error(f"Error fetching dynamic content types: {str(e)}", exc_info=True)
+        return DEFAULT_CONTENT_TYPES.copy()
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+async def get_dynamic_content_angles_with_retry(niche: str, content_type: str) -> List[str]:
+    content_angles = []
     
     if not serpapi_key:
-        logger.warning("SERPAPI_KEY not found, using default content types")
-        return content_types
+        logger.warning("SERPAPI_KEY not found, using AI-generated content angles")
+        return await generate_ai_content_angles(niche, content_type)
     
-    try:
-        # Search for popular content types in this niche
-        async with aiohttp.ClientSession() as session:
-            params = {
-                'engine': 'google',
-                'q': f'{niche} content types',
-                'api_key': serpapi_key
-            }
-            
-            async with session.get('https://serpapi.com/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    
-                    # Extract content types from search results
-                    if 'organic_results' in data:
-                        for result in data['organic_results']:
-                            if 'title' in result:
-                                title = result['title']
-                                # Extract potential content types from titles
-                                if 'how to' in title.lower() or 'tutorial' in title.lower():
-                                    if 'How-to Guide' not in content_types:
-                                        content_types.append('How-to Guide')
-                                elif 'review' in title.lower():
-                                    if 'Review' not in content_types:
-                                        content_types.append('Review')
-                                elif 'news' in title.lower():
-                                    if 'News' not in content_types:
-                                        content_types.append('News')
-                                elif 'list' in title.lower() or 'listicle' in title.lower():
-                                    if 'Listicle' not in content_types:
-                                        content_types.append('Listicle')
-                    
-                    # Cache the results
-                    dynamic_content_cache["types"][cache_key] = {
-                        "data": content_types,
-                        "timestamp": datetime.now()
-                    }
-                    
-                    logger.info(f"Found {len(content_types)} content types for {niche}")
-                    return content_types
-                    
-    except Exception as e:
-        logger.error(f"Error fetching dynamic content types: {e}")
-        return content_types
-    
-    return content_types
+    async with aiohttp.ClientSession() as session:
+        params = {
+            'engine': 'google',
+            'q': f'{niche} {content_type} content angles',
+            'api_key': serpapi_key
+        }
+        
+        data = await fetch_with_retry(session, 'https://serpapi.com/search', params, aiohttp.ClientTimeout(total=30))
+        
+        # Extract content angles from search results
+        if 'organic_results' in data:
+            for result in data['organic_results']:
+                if 'title' in result:
+                    title = result['title']
+                    # Extract potential content angles from titles
+                    if 'beginner' in title.lower() and 'guide' in title.lower():
+                        if "Beginner's Guide to" not in content_angles:
+                            content_angles.append("Beginner's Guide to")
+                    elif 'advanced' in title.lower() and 'techniques' in title.lower():
+                        if "Advanced Techniques for" not in content_angles:
+                            content_angles.append("Advanced Techniques for")
+                    elif 'ultimate guide' in title.lower():
+                        if "The Ultimate Guide to" not in content_angles:
+                            content_angles.append("The Ultimate Guide to")
+                    elif 'mistakes' in title.lower() and 'avoid' in title.lower():
+                        if "Mistakes to Avoid with" not in content_angles:
+                            content_angles.append("Mistakes to Avoid with")
+                    elif 'surprising facts' in title.lower():
+                        if "5 Surprising Facts About" not in content_angles:
+                            content_angles.append("5 Surprising Facts About")
+                    elif 'expert interview' in title.lower():
+                        if "Interview with an Expert on" not in content_angles:
+                            content_angles.append("Interview with an Expert on")
+        
+        # If we don't get enough angles, supplement with AI-generated ones
+        if len(content_angles) < 5:
+            ai_angles = await generate_ai_content_angles(niche, content_type)
+            content_angles.extend(ai_angles)
+        
+        logger.info(f"Found {len(content_angles)} content angles for {niche}")
+        return content_angles
 
 async def get_dynamic_content_angles(niche: str, content_type: str) -> List[str]:
     """Get dynamic content angles based on niche and content type using SerpAPI"""
@@ -477,69 +523,67 @@ async def get_dynamic_content_angles(niche: str, content_type: str) -> List[str]
             logger.info(f"Using cached content angles for: {niche}")
             return cached_data["data"]
     
-    content_angles = []
+    try:
+        content_angles = await get_dynamic_content_angles_with_retry(niche, content_type)
+        # Cache the results
+        dynamic_content_cache["angles"][cache_key] = {
+            "data": content_angles,
+            "timestamp": datetime.now()
+        }
+        return content_angles
+    except Exception as e:
+        logger.error(f"Error fetching dynamic content angles: {str(e)}", exc_info=True)
+        return await generate_ai_content_angles(niche, content_type)
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+async def get_dynamic_content_formats_with_retry(niche: str, platform: str) -> List[str]:
+    content_formats = []
     
     if not serpapi_key:
-        logger.warning("SERPAPI_KEY not found, using AI-generated content angles")
-        return await generate_ai_content_angles(niche, content_type)
+        logger.warning("SERPAPI_KEY not found, using AI-generated content formats")
+        return await generate_ai_content_formats(niche, platform)
     
-    try:
-        # Search for popular content angles in this niche and content type
-        async with aiohttp.ClientSession() as session:
-            params = {
-                'engine': 'google',
-                'q': f'{niche} {content_type} content angles',
-                'api_key': serpapi_key
-            }
-            
-            async with session.get('https://serpapi.com/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    
-                    # Extract content angles from search results
-                    if 'organic_results' in data:
-                        for result in data['organic_results']:
-                            if 'title' in result:
-                                title = result['title']
-                                # Extract potential content angles from titles
-                                if 'beginner' in title.lower() and 'guide' in title.lower():
-                                    if "Beginner's Guide to" not in content_angles:
-                                        content_angles.append("Beginner's Guide to")
-                                elif 'advanced' in title.lower() and 'techniques' in title.lower():
-                                    if "Advanced Techniques for" not in content_angles:
-                                        content_angles.append("Advanced Techniques for")
-                                elif 'ultimate guide' in title.lower():
-                                    if "The Ultimate Guide to" not in content_angles:
-                                        content_angles.append("The Ultimate Guide to")
-                                elif 'mistakes' in title.lower() and 'avoid' in title.lower():
-                                    if "Mistakes to Avoid with" not in content_angles:
-                                        content_angles.append("Mistakes to Avoid with")
-                                elif 'surprising facts' in title.lower():
-                                    if "5 Surprising Facts About" not in content_angles:
-                                        content_angles.append("5 Surprising Facts About")
-                                elif 'expert interview' in title.lower():
-                                    if "Interview with an Expert on" not in content_angles:
-                                        content_angles.append("Interview with an Expert on")
-                    
-                    # If we don't get enough angles, supplement with AI-generated ones
-                    if len(content_angles) < 5:
-                        ai_angles = await generate_ai_content_angles(niche, content_type)
-                        content_angles.extend(ai_angles)
-                    
-                    # Cache the results
-                    dynamic_content_cache["angles"][cache_key] = {
-                        "data": content_angles,
-                        "timestamp": datetime.now()
-                    }
-                    
-                    logger.info(f"Found {len(content_angles)} content angles for {niche}")
-                    return content_angles
-                    
-    except Exception as e:
-        logger.error(f"Error fetching dynamic content angles: {e}")
-        return await generate_ai_content_angles(niche, content_type)
-    
-    return content_angles
+    async with aiohttp.ClientSession() as session:
+        params = {
+            'engine': 'google',
+            'q': f'{niche} {platform} content formats',
+            'api_key': serpapi_key
+        }
+        
+        data = await fetch_with_retry(session, 'https://serpapi.com/search', params, aiohttp.ClientTimeout(total=30))
+        
+        # Extract content formats from search results
+        if 'organic_results' in data:
+            for result in data['organic_results']:
+                if 'title' in result:
+                    title = result['title']
+                    # Extract potential content formats from titles
+                    if 'tutorial' in title.lower():
+                        if "Step-by-Step Tutorial" not in content_formats:
+                            content_formats.append("Step-by-Step Tutorial")
+                    elif 'q&a' in title.lower() or 'q and a' in title.lower():
+                        if "Q&A Session" not in content_formats:
+                            content_formats.append("Q&A Session")
+                    elif 'live' in title.lower() and 'demo' in title.lower():
+                        if "Live Demonstration" not in content_formats:
+                            content_formats.append("Live Demonstration")
+                    elif 'comparison' in title.lower() and 'review' in title.lower():
+                        if "Comparison Review" not in content_formats:
+                            content_formats.append("Comparison Review")
+                    elif 'showcase' in title.lower():
+                        if "Product Showcase" not in content_formats:
+                            content_formats.append("Product Showcase")
+                    elif 'analysis' in title.lower():
+                        if "Industry Analysis" not in content_formats:
+                            content_formats.append("Industry Analysis")
+        
+        # If we don't get enough formats, supplement with AI-generated ones
+        if len(content_formats) < 5:
+            ai_formats = await generate_ai_content_formats(niche, platform)
+            content_formats.extend(ai_formats)
+        
+        logger.info(f"Found {len(content_formats)} content formats for {niche}")
+        return content_formats
 
 async def get_dynamic_content_formats(niche: str, platform: str) -> List[str]:
     """Get dynamic content formats based on niche and platform using SerpAPI"""
@@ -553,69 +597,17 @@ async def get_dynamic_content_formats(niche: str, platform: str) -> List[str]:
             logger.info(f"Using cached content formats for: {niche}")
             return cached_data["data"]
     
-    content_formats = []
-    
-    if not serpapi_key:
-        logger.warning("SERPAPI_KEY not found, using AI-generated content formats")
-        return await generate_ai_content_formats(niche, platform)
-    
     try:
-        # Search for popular content formats in this niche and platform
-        async with aiohttp.ClientSession() as session:
-            params = {
-                'engine': 'google',
-                'q': f'{niche} {platform} content formats',
-                'api_key': serpapi_key
-            }
-            
-            async with session.get('https://serpapi.com/search', params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    
-                    # Extract content formats from search results
-                    if 'organic_results' in data:
-                        for result in data['organic_results']:
-                            if 'title' in result:
-                                title = result['title']
-                                # Extract potential content formats from titles
-                                if 'tutorial' in title.lower():
-                                    if "Step-by-Step Tutorial" not in content_formats:
-                                        content_formats.append("Step-by-Step Tutorial")
-                                elif 'q&a' in title.lower() or 'q and a' in title.lower():
-                                    if "Q&A Session" not in content_formats:
-                                        content_formats.append("Q&A Session")
-                                elif 'live' in title.lower() and 'demo' in title.lower():
-                                    if "Live Demonstration" not in content_formats:
-                                        content_formats.append("Live Demonstration")
-                                elif 'comparison' in title.lower() and 'review' in title.lower():
-                                    if "Comparison Review" not in content_formats:
-                                        content_formats.append("Comparison Review")
-                                elif 'showcase' in title.lower():
-                                    if "Product Showcase" not in content_formats:
-                                        content_formats.append("Product Showcase")
-                                elif 'analysis' in title.lower():
-                                    if "Industry Analysis" not in content_formats:
-                                        content_formats.append("Industry Analysis")
-                    
-                    # If we don't get enough formats, supplement with AI-generated ones
-                    if len(content_formats) < 5:
-                        ai_formats = await generate_ai_content_formats(niche, platform)
-                        content_formats.extend(ai_formats)
-                    
-                    # Cache the results
-                    dynamic_content_cache["formats"][cache_key] = {
-                        "data": content_formats,
-                        "timestamp": datetime.now()
-                    }
-                    
-                    logger.info(f"Found {len(content_formats)} content formats for {niche}")
-                    return content_formats
-                    
+        content_formats = await get_dynamic_content_formats_with_retry(niche, platform)
+        # Cache the results
+        dynamic_content_cache["formats"][cache_key] = {
+            "data": content_formats,
+            "timestamp": datetime.now()
+        }
+        return content_formats
     except Exception as e:
-        logger.error(f"Error fetching dynamic content formats: {e}")
+        logger.error(f"Error fetching dynamic content formats: {str(e)}", exc_info=True)
         return await generate_ai_content_formats(niche, platform)
-    
-    return content_formats
 
 async def generate_ai_content_angles(niche: str, content_type: str) -> List[str]:
     """Generate content angles using AI when API is not available"""
@@ -639,7 +631,7 @@ Example: ["Beginner's Guide to {niche}", "Advanced Techniques for {niche}", "The
         logger.info(f"AI generated {len(result)} content angles for {niche}")
         return result
     except Exception as e:
-        logger.error(f"Error generating AI content angles: {e}")
+        logger.error(f"Error generating AI content angles: {str(e)}", exc_info=True)
         # Fallback to basic angles
         return [
             f"Beginner's Guide to {niche}",
@@ -676,7 +668,7 @@ Example: ["Step-by-Step Tutorial", "Q&A Session", "Live Demonstration", "Compari
         logger.info(f"AI generated {len(result)} content formats for {niche}")
         return result
     except Exception as e:
-        logger.error(f"Error generating AI content formats: {e}")
+        logger.error(f"Error generating AI content formats: {str(e)}", exc_info=True)
         # Fallback to basic formats
         return [
             "Step-by-Step Tutorial",
@@ -877,7 +869,7 @@ Example format:
         return result
         
     except OutputParserException as e:
-        logger.error(f"Output parsing error: {e}")
+        logger.error(f"Output parsing error: {str(e)}", exc_info=True)
         # Update debug info with error
         model_debug["status"] = "output_parse_error"
         model_debug["error"] = str(e)
@@ -888,7 +880,7 @@ Example format:
         return generate_fallback_calendar(request, content_angles, content_formats)
         
     except Exception as e:
-        logger.error(f"Error generating content calendar: {e}")
+        logger.error(f"Error generating content calendar: {str(e)}", exc_info=True)
         # Update debug info with error
         model_debug["status"] = "error"
         model_debug["error"] = str(e)
@@ -988,7 +980,7 @@ Example: ["Trend 1", "Trend 2", "Trend 3"]""",
         return result
         
     except Exception as e:
-        logger.error(f"Error detecting trends: {e}")
+        logger.error(f"Error detecting trends: {str(e)}", exc_info=True)
         # Update debug info with error
         trend_debug["status"] = "error"
         trend_debug["error"] = str(e)
@@ -1053,7 +1045,7 @@ async def generate_calendar_endpoint(
         })
         
     except Exception as e:
-        logger.error(f"Error generating content: {str(e)}")
+        logger.error(f"Error generating content: {str(e)}", exc_info=True)
         # Track error in endpoint stats
         if "generate-calendar" in endpoint_stats["endpoints"]:
             endpoint_stats["endpoints"]["generate-calendar"]["errors"] += 1
