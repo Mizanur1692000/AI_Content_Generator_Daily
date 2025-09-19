@@ -10,4 +10,3 @@ aiofiles
 google-api-python-client
 serpapi
 aiohttp
-huggingface_hub
